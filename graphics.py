@@ -5,6 +5,7 @@ import math
 def draw_planet(distance, size, angle, texture,rotation_angle=0):
     glPushMatrix()
     
+    
     glEnable(GL_TEXTURE_2D)
     glBindTexture(GL_TEXTURE_2D, texture)
     
