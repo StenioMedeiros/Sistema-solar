@@ -64,6 +64,7 @@ class Moon:
         glPushMatrix()
         glRotatef(self.angle, 0, 1, 0)
         glTranslatef(self.distance, 0, 0)
+        apply_material()
         draw_planet(0, self.size, 0, self.texture, self.rotation_angle)
         glPopMatrix()
 
@@ -76,7 +77,6 @@ def main():
     pygame.mixer.music.load('assets/space_ambient.mp3')
     pygame.mixer.music.set_volume(0.5) 
     pygame.mixer.music.play(-1) 
-
 
     pygame.init()
     pygame.display.set_caption('Sistema Solar')
@@ -163,6 +163,7 @@ def main():
          planet.draw()
          
         # Desenha o Sol (centro do sistema solar)
+        apply_material()
         draw_planet(0, 1.2, 0, sun_texture) # Sol no centro
 
         # Desenha os planetas
