@@ -72,6 +72,12 @@ class Moon:
 def main():
     display = (800, 600)
     
+    pygame.mixer.init()
+    pygame.mixer.music.load('assets/space_ambient.mp3')
+    pygame.mixer.music.set_volume(0.5) 
+    pygame.mixer.music.play(-1) 
+
+
     pygame.init()
     pygame.display.set_caption('Sistema Solar')
     pygame.display.set_icon(pygame.image.load('assets/earth.webp'))
