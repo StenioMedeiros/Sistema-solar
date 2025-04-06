@@ -9,17 +9,23 @@ from textures import load_texture
 from camera import setup_camera, handle_camera_movement, movimento_mouse
 
 class Planet:
-    def __init__(self, distance, size, speed, texture_file, has_ring=False, ring_texture=None):
+    def __init__(self, distance, size, speed, texture_file,rotation_speed=10, has_ring=False, ring_texture=None,  moons=None):
         self.distance = distance  
         self.size = size          
         self.angle = 0            
-        self.speed = speed       
+        self.speed = speed
+        self.rotation_angle = 0  # Ângulo de rotação (em torno do próprio eixo)
+        self.rotation_speed = rotation_speed  # Velocidade de rotação       
         self.texture = load_texture(texture_file) 
         self.has_ring = has_ring  
         self.ring_texture = load_texture(ring_texture) if has_ring else None 
+        self.moons = moons or []
 
     def update(self, dt):
-        self.angle += self.speed * dt  
+        self.angle += self.speed * dt  # Atualiza translação
+        self.rotation_angle += self.rotation_speed * dt  # Atualiza rotação
+        for moon in self.moons:
+            moon.update(dt) 
 
     def draw(self):
         glPushMatrix()
@@ -27,12 +33,40 @@ class Planet:
         glRotatef(self.angle, 0, 1, 0)  
         glTranslatef(self.distance, 0, 0)
    
-        draw_planet(0, self.size, 0, self.texture) 
+        draw_planet(0, self.size, 0, self.texture, self.rotation_angle) 
                 
         if self.has_ring and self.ring_texture:
-            draw_ring(self.size * 1.8, self.size * 2.5, self.ring_texture, self.angle)  
+            draw_ring(self.size * 1.8, self.size * 2.5, self.ring_texture, self.rotation_angle)  
         
+        # Desenha as luas
+        for moon in self.moons:
+            moon.draw()
+            
         glPopMatrix()
+
+
+class Moon:
+    def __init__(self, distance, size, speed, texture_file, parent_planet, rotation_speed=5):
+        self.distance = distance
+        self.size = size
+        self.angle = 0
+        self.speed = speed
+        self.rotation_angle = 0
+        self.rotation_speed = rotation_speed
+        self.texture = load_texture(texture_file)
+        self.parent_planet = parent_planet
+
+    def update(self, dt):
+        self.angle += self.speed * dt
+        self.rotation_angle += self.rotation_speed * dt
+
+    def draw(self):
+        glPushMatrix()
+        glRotatef(self.angle, 0, 1, 0)
+        glTranslatef(self.distance, 0, 0)
+        draw_planet(0, self.size, 0, self.texture, self.rotation_angle)
+        glPopMatrix()
+
 
 
 def main():
@@ -44,16 +78,20 @@ def main():
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL | RESIZABLE)
     init_opengl()
 
+        # Criar a Terra com a Lua
+    earth = Planet(5.0, 0.7, 30, 'assets/earth.jpg')
+    moon = Moon(1.0, 0.2, 60, 'assets/moon.jpg', earth)
+    earth.moons.append(moon)
+
     planets = [
-        Planet(2.0, 0.3, 50, 'assets/mercury.jpg'), 
-        Planet(3.5, 0.6, 35, 'assets/venus.jpg'),    
-        Planet(5.0, 0.7, 30, 'assets/earth.jpg'),    
-        Planet(7.0, 0.5, 25, 'assets/mars.jpg'),     
-        Planet(9.0, 1.0, 20, 'assets/jupiter.jpg'),  
-        Planet(12.0, 0.9, 15, 'assets/saturn.jpg', has_ring=True, ring_texture='assets/saturn_ring_alpha.png'),  
-        Planet(15.0, 0.6, 12, 'assets/uranus.jpg'),  
-        Planet(19.0, 0.5, 10, 'assets/neptune.jpg')  
-        
+        Planet(2.0, 0.3, 50, 'assets/mercury.jpg', rotation_speed=5),  # Mercúrio gira mais devagar
+        Planet(3.5, 0.6, 35, 'assets/venus.jpg', rotation_speed=-2),   # Vênus gira no sentido oposto
+        earth,  # Terra com Lua (já definida anteriormente)
+        Planet(7.0, 0.5, 25, 'assets/mars.jpg', rotation_speed=7),
+        Planet(9.0, 1.0, 20, 'assets/jupiter.jpg', rotation_speed=15),  # Júpiter gira rápido
+        Planet(12.0, 0.9, 15, 'assets/saturn.jpg', rotation_speed=12, has_ring=True, ring_texture='assets/saturn_ring_alpha.png'),
+        Planet(15.0, 0.6, 12, 'assets/uranus.jpg', rotation_speed=-8),  # Urano gira de lado
+        Planet(19.0, 0.5, 10, 'assets/neptune.jpg', rotation_speed=9)
     ]
 
     sun_texture = load_texture('assets/sun.jpg')
